@@ -1,7 +1,7 @@
 import React from 'react';
 import { AbsoluteFill, Series } from 'remotion';
 import { C } from './theme';
-import { Title, Thesis, Architecture, DemoAct, Closing } from './scenes';
+import { Architecture, Closing, Problem, ProofScene, Scorecard, Thesis, Title } from './scenes';
 
 export const FPS = 30;
 
@@ -9,15 +9,16 @@ export const FPS = 30;
 // screen-recording clips (see README) so they hold the footage.
 const S = {
   title: 90,
-  thesis: 135,
-  arch: 205,
-  act1: 200,
-  act2: 200,
-  act3: 230,
+  problem: 150,
+  thesis: 150,
+  arch: 210,
+  proofBuild: 240,
+  proofGrade: 250,
+  scorecard: 190,
   closing: 150,
 };
 
-export const TOTAL = Object.values(S).reduce((a, b) => a + b, 0); // 1210 ≈ 40s
+export const TOTAL = Object.values(S).reduce((a, b) => a + b, 0); // 1430 ≈ 48s
 
 export const BuildRoomVideo: React.FC = () => (
   <AbsoluteFill style={{ backgroundColor: C.bg }}>
@@ -25,35 +26,38 @@ export const BuildRoomVideo: React.FC = () => (
       <Series.Sequence durationInFrames={S.title}>
         <Title />
       </Series.Sequence>
+      <Series.Sequence durationInFrames={S.problem}>
+        <Problem />
+      </Series.Sequence>
       <Series.Sequence durationInFrames={S.thesis}>
         <Thesis />
       </Series.Sequence>
       <Series.Sequence durationInFrames={S.arch}>
         <Architecture />
       </Series.Sequence>
-      <Series.Sequence durationInFrames={S.act1}>
-        <DemoAct
+      <Series.Sequence durationInFrames={S.proofBuild}>
+        <ProofScene
           n="01"
-          title="Collaborative build"
-          caption="A human and an AI agent edit the same app — the live preview updates for everyone."
-          variant="build"
+          kicker="Hosted Maincloud proof"
+          title="Claude writes the app by mutating database rows."
+          caption="In the public Vercel app, a human submits an intent, the paired Claude runner registers as a SpacetimeDB client, and index.html advances from v1 to v2."
+          src="hosted-write.png"
+          badge="This is the actual hosted app: Maincloud room, live subscriptions, agent activity, file version bump, and preview in one surface."
         />
       </Series.Sequence>
-      <Series.Sequence durationInFrames={S.act2}>
-        <DemoAct
+      <Series.Sequence durationInFrames={S.proofGrade}>
+        <ProofScene
           n="02"
-          title="Human-steered AI"
-          caption="Type an instruction → your Claude Opus 4.8 agent writes the file."
-          variant="steer"
+          kicker="Verified benchmark proof"
+          title="The room grades real HumanEval tests live."
+          caption="The agent writes solution.py, the grader executes the dataset's unit tests in a sandbox, and the verdict row flips to PASS for everyone."
+          src="humaneval-pass.png"
+          badge="The secret tests never reach the browser. They live in a private table and the grader writes only the public verdict."
+          accent={C.amber}
         />
       </Series.Sequence>
-      <Series.Sequence durationInFrames={S.act3}>
-        <DemoAct
-          n="03"
-          title="Graded live"
-          caption="A real HumanEval task — unit tests run in a sandbox → verified PASS."
-          variant="grade"
-        />
+      <Series.Sequence durationInFrames={S.scorecard}>
+        <Scorecard />
       </Series.Sequence>
       <Series.Sequence durationInFrames={S.closing}>
         <Closing />

@@ -1,8 +1,10 @@
 import React from 'react';
 import {
   AbsoluteFill,
+  Img,
   interpolate,
   spring,
+  staticFile,
   useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
@@ -22,14 +24,18 @@ function fadeIn(frame: number, start: number, len = 12) {
   });
 }
 
-const Stage: React.FC<{ children: React.ReactNode; bg?: string }> = ({ children, bg }) => (
+const Stage: React.FC<{ children: React.ReactNode; bg?: string; align?: 'center' | 'top' }> = ({
+  children,
+  bg,
+  align = 'center',
+}) => (
   <AbsoluteFill
     style={{
       backgroundColor: bg ?? C.bg,
       fontFamily: hanken,
       color: C.ink,
       padding: 110,
-      justifyContent: 'center',
+      justifyContent: align === 'top' ? 'flex-start' : 'center',
     }}
   >
     {children}
@@ -52,17 +58,79 @@ const Kicker: React.FC<{ children: React.ReactNode; delay?: number }> = ({ child
   </div>
 );
 
+const Pill: React.FC<{ children: React.ReactNode; accent?: string }> = ({ children, accent = C.green }) => (
+  <div
+    style={{
+      border: `1px solid ${accent}`,
+      color: accent,
+      borderRadius: 999,
+      padding: '10px 18px',
+      fontFamily: mono,
+      fontSize: 22,
+      background: 'rgba(255,255,255,0.025)',
+      whiteSpace: 'nowrap',
+    }}
+  >
+    {children}
+  </div>
+);
+
+const BrowserShot: React.FC<{ src: string; show?: number; scale?: number; width?: number }> = ({
+  src,
+  show = 0,
+  scale = 1,
+  width = 1320,
+}) => {
+  const frame = useCurrentFrame();
+  const opacity = fadeIn(frame, show, 16);
+  return (
+    <div
+      style={{
+        opacity,
+        transform: `scale(${scale}) translateY(${(1 - opacity) * 20}px)`,
+        transformOrigin: 'center',
+        width,
+        borderRadius: 22,
+        overflow: 'hidden',
+        border: `1px solid ${C.line}`,
+        boxShadow: '0 38px 120px rgba(0,0,0,.55)',
+        background: C.panel,
+      }}
+    >
+      <div
+        style={{
+          height: 44,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          padding: '0 18px',
+          borderBottom: `1px solid ${C.line}`,
+          background: '#17140F',
+        }}
+      >
+        <span style={{ width: 12, height: 12, borderRadius: 12, background: '#ED6A5E' }} />
+        <span style={{ width: 12, height: 12, borderRadius: 12, background: '#F4BF4F' }} />
+        <span style={{ width: 12, height: 12, borderRadius: 12, background: '#61C554' }} />
+        <span style={{ marginLeft: 18, fontFamily: mono, fontSize: 18, color: C.inkSoft }}>
+          client-alpha-seven-64.vercel.app
+        </span>
+      </div>
+      <Img src={staticFile(src)} style={{ display: 'block', width: '100%' }} />
+    </div>
+  );
+};
+
 // ---- 1. TITLE -------------------------------------------------------------
 export const Title: React.FC = () => {
   const frame = useCurrentFrame();
   return (
     <Stage>
       <Kicker delay={4}>SpacetimeDB Launchpad · NYC</Kicker>
-      <div style={{ ...useUp(10), fontFamily: fraunces, fontSize: 132, lineHeight: 1.02, letterSpacing: -2 }}>
+      <div style={{ ...useUp(10), fontFamily: fraunces, fontSize: 132, lineHeight: 1.02 }}>
         Build Room
       </div>
       <div style={{ ...useUp(20), fontSize: 44, color: C.inkSoft, marginTop: 24, maxWidth: 1300 }}>
-        Humans <span style={{ color: C.green }}>+</span> AI agents, co-building on a database.
+        A live multiplayer arena where humans and AI agents build on the same database state.
       </div>
       <div
         style={{
@@ -79,48 +147,77 @@ export const Title: React.FC = () => {
   );
 };
 
-// ---- 2. THESIS ------------------------------------------------------------
-export const Thesis: React.FC = () => {
+// ---- 2. PROBLEM -----------------------------------------------------------
+export const Problem: React.FC = () => {
   const frame = useCurrentFrame();
-  const lines = [
-    ['GitHub is how teams collaborate ', 'asynchronously', '.'],
-    ['This is the ', 'live, multiplayer, human + AI', ' version.'],
+  const cards = [
+    ['AI demos are usually lonely', 'One user, one chat, one temporary answer.'],
+    ['Files vanish between turns', 'Artifacts are exports, not durable shared state.'],
+    ['Agents cannot coordinate', 'There is no live room where humans, agents, and graders are peers.'],
   ];
   return (
     <Stage>
-      <Kicker>The idea</Kicker>
-      {lines.map((parts, i) => (
-        <div
-          key={i}
-          style={{
-            ...useUp(8 + i * 14),
-            fontFamily: fraunces,
-            fontSize: 76,
-            lineHeight: 1.15,
-            marginBottom: 10,
-          }}
-        >
-          {parts[0]}
-          <span style={{ color: C.green }}>{parts[1]}</span>
-          {parts[2]}
-        </div>
-      ))}
-      <div style={{ opacity: fadeIn(frame, 50), marginTop: 50, fontSize: 38, color: C.inkSoft, maxWidth: 1400 }}>
-        A team joins a room, each person steers their own coding agent, and they build a working app — in real
-        time, on shared state — watching it render as they go.
+      <Kicker>The problem</Kicker>
+      <div style={{ ...useUp(6), fontFamily: fraunces, fontSize: 72, lineHeight: 1.12, maxWidth: 1420 }}>
+        The hard part is not prompting.
+        <br />
+        <span style={{ color: C.green }}>It is shared state.</span>
+      </div>
+      <div style={{ display: 'flex', gap: 22, marginTop: 60 }}>
+        {cards.map(([title, body], i) => (
+          <div
+            key={title}
+            style={{
+              opacity: fadeIn(frame, 30 + i * 14),
+              width: 520,
+              minHeight: 220,
+              border: `1px solid ${C.line}`,
+              background: C.panel,
+              borderRadius: 18,
+              padding: 28,
+            }}
+          >
+            <div style={{ fontFamily: fraunces, fontSize: 38, lineHeight: 1.05 }}>{title}</div>
+            <div style={{ marginTop: 18, fontSize: 25, color: C.inkSoft, lineHeight: 1.35 }}>{body}</div>
+          </div>
+        ))}
       </div>
     </Stage>
   );
 };
 
-// ---- 3. ARCHITECTURE ------------------------------------------------------
-const Box: React.FC<{ x: number; show: number; label: string; sub?: string; w?: number; accent?: string }> = ({
+// ---- 3. THESIS ------------------------------------------------------------
+export const Thesis: React.FC = () => {
+  const frame = useCurrentFrame();
+  return (
+    <Stage>
+      <Kicker>The answer</Kicker>
+      <div style={{ ...useUp(8), fontFamily: fraunces, fontSize: 80, lineHeight: 1.12, maxWidth: 1450 }}>
+        Make the database the multiplayer workspace.
+      </div>
+      <div style={{ opacity: fadeIn(frame, 36), marginTop: 44, fontSize: 38, color: C.inkSoft, maxWidth: 1420 }}>
+        Every participant is just a SpacetimeDB client: browsers, Claude, Gemini, graders, spectators. They
+        subscribe to the same room and mutate state only through reducers.
+      </div>
+      <div style={{ display: 'flex', gap: 18, marginTop: 52, opacity: fadeIn(frame, 58) }}>
+        <Pill>files are rows</Pill>
+        <Pill>intents are rows</Pill>
+        <Pill>agent thoughts are rows</Pill>
+        <Pill>verdicts are rows</Pill>
+      </div>
+    </Stage>
+  );
+};
+
+// ---- 4. ARCHITECTURE ------------------------------------------------------
+const Box: React.FC<{ x: number; show: number; label: string; sub?: string; w?: number; accent?: string; top?: number }> = ({
   x,
   show,
   label,
   sub,
   w = 460,
   accent = C.line,
+  top = 388,
 }) => {
   const frame = useCurrentFrame();
   const o = fadeIn(frame, show);
@@ -129,7 +226,7 @@ const Box: React.FC<{ x: number; show: number; label: string; sub?: string; w?: 
       style={{
         position: 'absolute',
         left: x,
-        top: 380,
+        top,
         width: w,
         opacity: o,
         transform: `translateY(${(1 - o) * 16}px)`,
@@ -148,40 +245,128 @@ const Box: React.FC<{ x: number; show: number; label: string; sub?: string; w?: 
 export const Architecture: React.FC = () => {
   const frame = useCurrentFrame();
   return (
-    <Stage>
-      <Kicker>How it works</Kicker>
+    <Stage align="top">
+      <Kicker>Why it is SpacetimeDB-native</Kicker>
       <div style={{ ...useUp(6), fontFamily: fraunces, fontSize: 64 }}>
-        One SpacetimeDB module. <span style={{ color: C.inkSoft }}>No app server.</span>
+        No app server. <span style={{ color: C.green }}>One module owns the arena.</span>
       </div>
 
-      <Box x={110} show={24} label="Browsers" sub="humans + spectators · render purely from subscriptions" accent={C.blue} />
-      <Box x={730} show={40} label="SpacetimeDB" sub="15 tables = ALL state · reducers = only writes · the live medium" accent={C.green} w={520} />
-      <Box x={1370} show={56} label="Runner" sub="Node client · calls the LLM / runs unit tests · keys stay here" accent={C.ai} />
-
-      {/* flow line */}
+      {/* connector line sits behind the three boxes (rendered before them) */}
       <div
         style={{
           position: 'absolute',
-          left: 110,
-          top: 350,
-          width: 1700,
+          left: 135,
+          top: 432,
+          width: 1640,
           height: 3,
           background: C.line,
           opacity: fadeIn(frame, 70),
         }}
       />
+      <Box x={110} top={372} show={24} label="Browsers" sub="humans + spectators render from subscriptions" accent={C.blue} />
+      <Box x={705} top={372} show={40} label="SpacetimeDB" sub="tables = state · reducers = rules · subscriptions = live UI" accent={C.green} w={560} />
+      <Box x={1390} top={372} show={56} label="Runners" sub="LLMs + test sandboxes act as normal clients" accent={C.ai} />
+
       <div
         style={{
-          opacity: fadeIn(frame, 90),
+          opacity: fadeIn(frame, 88),
           position: 'absolute',
           top: 640,
-          left: 110,
-          fontSize: 32,
+          left: 118,
+          fontSize: 31,
           color: C.amber,
           fontFamily: mono,
         }}
       >
-        every file · keystroke · agent thought · vote  →  a row
+        The app being built is not saved after the fact. It is live database state.
+      </div>
+      <div style={{ position: 'absolute', top: 716, left: 118, display: 'flex', gap: 16, opacity: fadeIn(frame, 100) }}>
+        <Pill accent={C.blue}>room-scoped subscriptions</Pill>
+        <Pill accent={C.green}>deterministic reducers</Pill>
+        <Pill accent={C.ai}>private benchmark secrets</Pill>
+      </div>
+    </Stage>
+  );
+};
+
+export const ProofScene: React.FC<{
+  n: string;
+  kicker: string;
+  title: string;
+  caption: string;
+  src: string;
+  badge: string;
+  accent?: string;
+}> = ({ n, kicker, title, caption, src, badge, accent = C.green }) => {
+  const frame = useCurrentFrame();
+  return (
+    <Stage>
+      {/* Two columns: the real hosted screenshot (proof) on the left, the
+          narrative on the right. Bounded height so nothing clips. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 56 }}>
+        <BrowserShot src={src} show={14} width={1040} />
+        <div style={{ width: 600 }}>
+          <div style={{ ...useUp(2), display: 'flex', gap: 14, alignItems: 'center', marginBottom: 18 }}>
+            <Pill accent={accent}>{n}</Pill>
+            <span style={{ fontFamily: mono, fontSize: 22, color: C.inkSoft }}>{kicker}</span>
+          </div>
+          <div style={{ ...useUp(6), fontFamily: fraunces, fontSize: 48, lineHeight: 1.08 }}>{title}</div>
+          <div style={{ ...useUp(12), fontSize: 26, color: C.inkSoft, marginTop: 16, lineHeight: 1.35 }}>
+            {caption}
+          </div>
+          <div
+            style={{
+              opacity: fadeIn(frame, 40),
+              marginTop: 26,
+              borderLeft: `4px solid ${accent}`,
+              paddingLeft: 22,
+              fontSize: 23,
+              lineHeight: 1.3,
+              color: C.ink,
+            }}
+          >
+            {badge}
+          </div>
+        </div>
+      </div>
+    </Stage>
+  );
+};
+
+export const Scorecard: React.FC = () => {
+  const frame = useCurrentFrame();
+  const rows = [
+    ['Innovation', 'AI agents are first-class multiplayer clients, not chatbots bolted on.'],
+    ['UX', 'Live room, live preview, activity feed, benchmark verdicts.'],
+    ['Completeness', 'Hosted on Vercel, Maincloud module, HumanEval PASS verified.'],
+    ['Sponsor tech', 'SpacetimeDB is the backend, rules engine, artifact store, and sync layer.'],
+  ];
+  return (
+    <Stage>
+      <Kicker>Judge scorecard</Kicker>
+      <div style={{ ...useUp(6), fontFamily: fraunces, fontSize: 70, maxWidth: 1450, lineHeight: 1.08 }}>
+        This is not a CRUD app with realtime sprinkled on top.
+      </div>
+      <div style={{ marginTop: 50, display: 'grid', gap: 18, width: 1500 }}>
+        {rows.map(([label, body], i) => (
+          <div
+            key={label}
+            style={{
+              opacity: fadeIn(frame, 28 + i * 10),
+              display: 'grid',
+              gridTemplateColumns: '270px 1fr',
+              gap: 30,
+              alignItems: 'center',
+              padding: '24px 28px',
+              border: `1px solid ${C.line}`,
+              borderRadius: 16,
+              background: C.panel,
+            }}
+          >
+            <div style={{ fontFamily: mono, color: C.green, fontSize: 25 }}>{label}</div>
+            <div style={{ fontSize: 30, color: C.inkSoft }}>{body}</div>
+          </div>
+        ))}
       </div>
     </Stage>
   );
@@ -352,15 +537,21 @@ export const Closing: React.FC = () => {
   return (
     <Stage>
       <Kicker>Built on SpacetimeDB + Claude + Gemini</Kicker>
-      <div style={{ ...useUp(8), fontFamily: fraunces, fontSize: 84, lineHeight: 1.05 }}>
-        Real-time. Multiplayer.
+      <div style={{ ...useUp(8), fontFamily: fraunces, fontSize: 82, lineHeight: 1.05, maxWidth: 1450 }}>
+        The submission is live.
         <br />
-        <span style={{ color: C.green }}>The DB is the server.</span>
+        <span style={{ color: C.green }}>The database is the arena.</span>
       </div>
-      <div style={{ opacity: fadeIn(frame, 40), marginTop: 50, fontFamily: mono, fontSize: 30, color: C.ink }}>
+      <div style={{ opacity: fadeIn(frame, 38), marginTop: 42, display: 'flex', gap: 16 }}>
+        <Pill>hosted demo</Pill>
+        <Pill>GitHub repo</Pill>
+        <Pill>Maincloud backend</Pill>
+        <Pill>verified tests</Pill>
+      </div>
+      <div style={{ opacity: fadeIn(frame, 56), marginTop: 58, fontFamily: mono, fontSize: 30, color: C.ink }}>
         client-alpha-seven-64.vercel.app
       </div>
-      <div style={{ opacity: fadeIn(frame, 50), marginTop: 12, fontFamily: mono, fontSize: 26, color: C.inkSoft }}>
+      <div style={{ opacity: fadeIn(frame, 66), marginTop: 12, fontFamily: mono, fontSize: 26, color: C.inkSoft }}>
         github.com/Ali-Maq/agentic-build-room
       </div>
     </Stage>
