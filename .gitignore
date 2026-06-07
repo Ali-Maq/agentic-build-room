@@ -7,5 +7,6 @@ ai-runner/.ai_token
 ai-runner/.agent_token*
 ai-runner/.grader_token
 client/e2e/*.png
+video/out/
 *.log
 .DS_Store
