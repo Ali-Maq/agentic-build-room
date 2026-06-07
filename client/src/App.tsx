@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTable, useSpacetimeDB } from 'spacetimedb/react';
 import { DbConnection, tables } from './module_bindings';
 import Lobby from './Lobby';
-import Room from './Room';
+import BuildRoom from './BuildRoom';
 
 export default function App() {
   const { isActive, identity, token, getConnection } = useSpacetimeDB();
@@ -15,8 +15,9 @@ export default function App() {
   }, [token]);
 
   // Global subscription: only the lightweight tables needed for the lobby and
-  // routing. Heavy / per-room data (video frames, Q&A, feedback) is subscribed
-  // room-scoped inside <Room/> so a client never receives other rooms' frames.
+  // routing. Heavy / per-room data (artifact files, agents, intents, activity,
+  // video frames, verdicts, votes) is subscribed room-scoped inside
+  // <BuildRoom/> so a client never receives other rooms' data.
   useEffect(() => {
     if (!conn || !isActive) return;
     conn
@@ -45,5 +46,7 @@ export default function App() {
     return <Lobby conn={conn!} myIdentity={identity} />;
   }
 
-  return <Room conn={conn!} myIdentity={identity} roomId={me.roomId} myRole={me.role} />;
+  return (
+    <BuildRoom conn={conn!} myIdentity={identity} roomId={me.roomId} myRole={me.role} />
+  );
 }

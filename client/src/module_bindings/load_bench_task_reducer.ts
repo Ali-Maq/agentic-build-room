@@ -10,14 +10,19 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
-export default __t.row({
-  id: __t.u64().primaryKey(),
-  topic: __t.string(),
-  status: __t.string(),
-  mode: __t.string(),
+export default {
+  roomId: __t.u64(),
+  datasetId: __t.string(),
+  config: __t.string(),
+  split: __t.string(),
+  rowIndex: __t.u64(),
+  benchmarkType: __t.string(),
+  label: __t.string(),
   prompt: __t.string(),
-  startedAt: __t.option(__t.timestamp()).name("started_at"),
-  deadlineAt: __t.option(__t.timestamp()).name("deadline_at"),
-  createdBy: __t.identity().name("created_by"),
-  createdAt: __t.timestamp().name("created_at"),
-});
+  groundTruth: __t.string(),
+  choices: __t.string(),
+  tests: __t.string(),
+  entryPoint: __t.string(),
+  gradeUnverified: __t.bool(),
+  metaJson: __t.string(),
+};

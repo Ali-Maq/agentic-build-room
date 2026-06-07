@@ -11,8 +11,7 @@ import {
 } from "spacetimedb";
 
 export default {
-  topic: __t.string(),
-  displayName: __t.string(),
-  mode: __t.string(),
-  prompt: __t.string(),
+  roomId: __t.u64(),
+  teamId: __t.u64(),
+  candidate: __t.string(),
 };

@@ -1,96 +1,92 @@
-# Panel — live group interviews, running entirely inside a database
+# Build Room — humans + AI agents, co-building on a database
 
-**Panel** is a real-time group interview room. An **AI panel** runs the session,
-multiple candidates join with **live video**, everyone sees the same shared state,
-and a human mentor can drop in to co-interview. There is **no application server**
-— every participant (human candidates, the human mentor, and the AI panelist) is
-just a client subscribing to the same **SpacetimeDB** database. The database *is*
-the server.
+**Live app:** https://client-alpha-seven-64.vercel.app · **Backend:** `amy-panel` on SpacetimeDB Maincloud
+*SpacetimeDB Launchpad Hackathon (NYC).*
 
-> **The one-line pitch:** *"This entire experience — presence, turn-taking, the
-> interview transcript, the AI's questions and scores, and the live video — is one
-> SpacetimeDB module. No web server, no media server, no WebRTC. Humans and the AI
-> are symmetric subscribers to the same tables."*
+> A real-time room where **humans and AI agents collaborate on one shared web app** — or race to solve a real
+> coding benchmark — with a **live preview** and **live, test-verified grading**. Every file, keystroke, agent
+> thought, and vote is a row in **one SpacetimeDB module**. There is no application server. **The database is
+> the arena.**
 
 ---
 
-## Why this is a real SpacetimeDB app, not a CRUD app with a DB bolted on
+## The idea
 
-| Concern | How Panel does it |
-|---|---|
-| Shared state | 7 public SpacetimeDB tables are the **single source of truth** |
-| Writes | The **only** write path is reducers — clients never mutate tables directly |
-| Reads | The whole UI renders **purely from subscriptions** (`useTable`) |
-| Presence / turns | `participant.online` + `room.currentTurn`, all in the DB |
-| **Live video** | webcam → JPEG bytes → `pushFrame` reducer → `video_frame` table → subscribers render. **Video is relayed through the database** — no media server, no WebRTC |
-| Time-based logic | a **scheduled reducer** (`onPhaseTick`) auto-advances stalled turns server-side — no external cron |
-| AI | the AI runner is **just another SpacetimeDB client**; it calls the LLM *outside* the (deterministic) reducers and writes results back via reducers |
+GitHub is how distributed teams collaborate *asynchronously* — branches, PRs, CI. We built the **live,
+multiplayer, human + AI** version: a team joins a room, each person steers their own AI coding agent, and
+together they build a working app **in real time on shared state**, watching it render as they go. Point the
+same room at a real Hugging Face benchmark and it becomes a **live, graded arena** — the agent writes a
+solution, the room runs the dataset's actual unit tests, and a verdict flips up for everyone.
 
-This directly targets the judging criteria: **heavily real-time**, **clever/novel
-use of SpacetimeDB** (video-over-DB + scheduled reducers), and **SpacetimeDB + LLMs**.
+Why it matters now: as AI agents become first-class actors, the hard problem isn't the model — it's **many
+humans and many agents coordinating on the same live state**. That's exactly what SpacetimeDB makes native.
 
-## Architecture
+## What's proven (verified end-to-end)
+
+1. **Collaborative build** — a human edits files *and* an AI agent edits files in the same room; everyone sees
+   the changes and the live preview update instantly.
+2. **Human-steered AI** — type an instruction ("add a dark-mode toggle") → your **Claude Opus 4.8** agent writes
+   the file → the preview re-renders for the whole room.
+3. **Benchmark graded live** — load a real **HumanEval** task → the agent writes `solution.py` → the room
+   executes the dataset's real unit tests in a sandbox → **VerdictCard: PASS, N/N tests, verified ✓**
+   (the secret tests/answers live in a *private* table and never reach the browser).
+
+Multi-model by design: agents run on **Gemini** *and* **Claude (via AWS Bedrock)** — both verified writing code.
+
+## Architecture — why this is genuinely SpacetimeDB-native
 
 ```
-┌────────────┐   subscribe (live)   ┌──────────────────────────┐
-│  Browser   │◄────────────────────►│                          │
-│ (candidate)│   reducers (writes)  │      SpacetimeDB         │
-└────────────┘                      │     module: "panel"      │
-┌────────────┐                      │                          │
-│  Browser   │◄────────────────────►│  tables: room,           │
-│  (mentor)  │                      │  participant, question,  │
-└────────────┘                      │  answer, feedback,       │
-┌────────────┐   pushFrame /        │  presence, video_frame   │
-│ AI runner  │◄──postQuestion──────►│  + scheduled onPhaseTick │
-│ (Node)     │   submitFeedback     │                          │
-└─────┬──────┘                      └──────────────────────────┘
-      │ LLM call (outside reducers)
-      ▼
-  Anthropic API
+ Browser (human) ─┐                         ┌─ SpacetimeDB module "amy-panel" ─┐
+ Browser (human) ─┼─ subscribe (live reads) │  15 public tables = ALL state:   │
+ Spectators ──────┘   reducers (only writes)│  artifact_file, participant,     │
+                                            │  agent, intent, activity,        │
+ Runner (Node client) ── reducers ─────────►│  bench_prompt, verdict, vote …   │
+   │  (API keys live ONLY here)             │  bench_task = PRIVATE (secrets)  │
+   └─ calls LLM / runs unit tests           └──────────────────────────────────┘
 ```
 
-- **`server/`** — the SpacetimeDB TypeScript module (tables + reducers). The source of truth.
-- **`client/`** — Vite + React app. Zoom-style gallery, renders entirely from subscriptions.
-- **`ai-runner/`** — a Node SpacetimeDB client that drives the AI panel (asks questions, scores answers) by calling the Anthropic API and writing back through reducers.
+- **State = SpacetimeDB tables.** The shared web app *is* `artifact_file` rows. The UI renders purely from
+  subscriptions; nothing polls.
+- **Writes = deterministic reducers** (the only write path). Reducers can't do I/O, so…
+- **…the AI lives in a "runner"** — a Node SpacetimeDB *client* that calls the LLM (or runs the sandboxed
+  Python tests) and writes results back via reducers. **Your API keys never touch the database.**
+- **Live preview** = `artifact_file` rows assembled into a sandboxed `<iframe>` (`allow-scripts` only) that
+  re-renders on every change.
+- **Scheduled reducer** auto-advances a stalled phase — server-side logic *inside the DB*, no cron.
 
-## Live video over a database
-
-`video_frame` holds **one row per participant**, updated in place each frame.
-The publisher (`client/src/useWebcamPublish.ts`) is energy-conscious:
-publish-on-change (skips near-identical frames), pause-when-hidden, stops when the
-camera is off, modest 320×240 @ 8fps. Clients use a **room-scoped subscription**
-(`video_frame WHERE roomId = mine`) so no client ever receives another room's frames.
-
-> Honest framing for the demo: we are **not** claiming this beats WebRTC on latency
-> or quality. We are demonstrating that **one table + one reducer replaces an entire
-> signaling + media stack**, sharing the exact same transport as presence, chat, and AI.
+This hits the judging criteria directly: heavily real-time, SpacetimeDB *meaningfully* used (it's the backend
+**and** the live medium), beautiful (a warm "Atelier" design system), clever STDB use (the artifact + grading
+live in the DB), and **SpacetimeDB + LLMs** (multi-model agents).
 
 ## Run it
 
-See **[SETUP.md](./SETUP.md)** for local dev and the Maincloud deploy steps.
+Open the live app, or run locally — see **[SETUP.md](./SETUP.md)**. The human side (lobby, rooms, file editing,
+live preview) works on its own; the AI agents are driven by a local **runner** (`ai-runner/`) pointed at the
+module. Full, test-each-feature instructions: **[FEATURES.md](./FEATURES.md)**.
 
-Quick start (local):
 ```bash
-spacetime start --listen-addr 127.0.0.1:3456     # terminal 1
-cd server && npm install && spacetime publish panel --server http://127.0.0.1:3456 --yes
-spacetime generate --lang typescript --out-dir ../client/src/module_bindings --module-path .
-cd ../client && npm install && npm run dev        # http://localhost:5173
-cd ../ai-runner && npm install && cp .env.example .env  # add ANTHROPIC_API_KEY
-npm start
+# after creating a room in the browser, point a Claude agent at it (Maincloud):
+cd ai-runner && SPACETIMEDB_URI=wss://maincloud.spacetimedb.com MODULE_NAME=amy-panel \
+  AWS_PROFILE=mssm-bedrock AWS_REGION=us-east-1 \
+  SOLVER_PROVIDER=bedrock SOLVER_MODEL=us.anthropic.claude-opus-4-8 \
+  PAIR=auto ROOM_ID=<id> AGENT_ROLES=solver npm run agents
 ```
 
-Open two browser windows, allow the camera, create + join a room, click **Start**.
+## Stack
 
-## Tech
+SpacetimeDB 2.4.1 (TypeScript module + TS/React client SDK) · React 18 + Vite (hosted on Vercel) ·
+Anthropic Claude (Bedrock) + Google Gemini for the agents · Hugging Face datasets-server for benchmarks ·
+Python sandbox for HumanEval grading.
 
-SpacetimeDB 2.4.1 (TypeScript module + TS client SDK) · React 18 + Vite ·
-Anthropic API for the AI interviewer/evaluator · Playwright for E2E.
+## Honest status
 
-## Status / notes
+- **Proven:** collaborative build, human-steered Claude, HumanEval test-graded — all verified in the browser.
+- **Experimental:** full **race mode** (human team vs autonomous AI team) — the UI works, but the complete
+  two-runner race hasn't been run end-to-end. See `FEATURES.md` for the exact line.
+- The agents need a local runner (the LLM call can't live in a reducer); hand-editing files needs nothing.
 
-- **Verified end-to-end with Playwright:** two browser identities join one room and
-  each receives the other's webcam frames *relayed through SpacetimeDB* (0 console errors).
-- The SpacetimeDB connection is config-only between local and Maincloud
-  (`client/src/config.ts` `USE_MAINCLOUD`, `ai-runner` `SPACETIMEDB_URI`).
-- Energy (TeV) note: video is the dominant DB workload; throttling + room-scoped
-  subscriptions keep it bounded. Measure on Maincloud before relying on full settings.
+## Repo layout
+
+`server/` — the SpacetimeDB module (tables + reducers) · `client/` — the React app ·
+`ai-runner/` — the LLM/grader runner (agent-runner, grader) · `FEATURES.md` — testable feature matrix ·
+`SETUP.md` — run/deploy steps.

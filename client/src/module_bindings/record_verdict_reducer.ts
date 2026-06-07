@@ -11,8 +11,16 @@ import {
 } from "spacetimedb";
 
 export default {
-  topic: __t.string(),
-  displayName: __t.string(),
-  mode: __t.string(),
-  prompt: __t.string(),
+  roomId: __t.u64(),
+  teamId: __t.u64(),
+  method: __t.string(),
+  verified: __t.bool(),
+  passed: __t.bool(),
+  passedCount: __t.u32(),
+  totalCount: __t.u32(),
+  score: __t.f64(),
+  stdout: __t.string(),
+  stderr: __t.string(),
+  durationMs: __t.u32(),
+  judgeNotes: __t.string(),
 };

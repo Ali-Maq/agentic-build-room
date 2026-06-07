@@ -11,13 +11,13 @@ import {
 } from "spacetimedb";
 
 export default __t.row({
-  id: __t.u64().primaryKey(),
-  topic: __t.string(),
-  status: __t.string(),
-  mode: __t.string(),
+  roomId: __t.u64().primaryKey().name("room_id"),
+  datasetId: __t.string().name("dataset_id"),
+  label: __t.string(),
+  benchmarkType: __t.string().name("benchmark_type"),
   prompt: __t.string(),
-  startedAt: __t.option(__t.timestamp()).name("started_at"),
-  deadlineAt: __t.option(__t.timestamp()).name("deadline_at"),
-  createdBy: __t.identity().name("created_by"),
-  createdAt: __t.timestamp().name("created_at"),
+  choices: __t.string(),
+  entryPoint: __t.string().name("entry_point"),
+  gradeUnverified: __t.bool().name("grade_unverified"),
+  loadedAt: __t.timestamp().name("loaded_at"),
 });

@@ -12,12 +12,12 @@ import {
 
 export default __t.row({
   id: __t.u64().primaryKey(),
-  topic: __t.string(),
+  roomId: __t.u64().name("room_id"),
+  authorIdentity: __t.identity().name("author_identity"),
+  authorName: __t.string().name("author_name"),
+  targetAgentId: __t.u64().name("target_agent_id"),
+  targetPath: __t.option(__t.string()).name("target_path"),
+  text: __t.string(),
   status: __t.string(),
-  mode: __t.string(),
-  prompt: __t.string(),
-  startedAt: __t.option(__t.timestamp()).name("started_at"),
-  deadlineAt: __t.option(__t.timestamp()).name("deadline_at"),
-  createdBy: __t.identity().name("created_by"),
   createdAt: __t.timestamp().name("created_at"),
 });

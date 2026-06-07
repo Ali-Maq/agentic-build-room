@@ -34,67 +34,127 @@ import {
 } from "spacetimedb";
 
 // Import all reducer arg schemas
-import AdvanceTurnReducer from "./advance_turn_reducer";
-import ClaimMentorSeatReducer from "./claim_mentor_seat_reducer";
+import CastVoteReducer from "./cast_vote_reducer";
+import ClaimFileReducer from "./claim_file_reducer";
+import ClaimIntentReducer from "./claim_intent_reducer";
 import CreateRoomReducer from "./create_room_reducer";
+import DeleteFileReducer from "./delete_file_reducer";
+import FinishBuildReducer from "./finish_build_reducer";
+import GradeDeterministicReducer from "./grade_deterministic_reducer";
 import HeartbeatReducer from "./heartbeat_reducer";
+import InitRaceTeamsReducer from "./init_race_teams_reducer";
 import JoinRoomReducer from "./join_room_reducer";
 import LeaveRoomReducer from "./leave_room_reducer";
-import PostQuestionReducer from "./post_question_reducer";
+import LoadBenchTaskReducer from "./load_bench_task_reducer";
+import MarkIntentReducer from "./mark_intent_reducer";
+import PostActivityReducer from "./post_activity_reducer";
 import PushFrameReducer from "./push_frame_reducer";
-import StartSessionReducer from "./start_session_reducer";
-import SubmitAnswerReducer from "./submit_answer_reducer";
-import SubmitFeedbackReducer from "./submit_feedback_reducer";
+import RecordVerdictReducer from "./record_verdict_reducer";
+import RegisterAgentReducer from "./register_agent_reducer";
+import ReleaseFileReducer from "./release_file_reducer";
+import SetAgentStatusReducer from "./set_agent_status_reducer";
+import SetFileOwnerReducer from "./set_file_owner_reducer";
+import StartBuildReducer from "./start_build_reducer";
+import SubmitIntentReducer from "./submit_intent_reducer";
+import WriteFileReducer from "./write_file_reducer";
 
 // Import all procedure arg schemas
 
 // Import all table schema definitions
-import AnswerRow from "./answer_table";
-import FeedbackRow from "./feedback_table";
+import ActivityRow from "./activity_table";
+import AgentRow from "./agent_table";
+import ArtifactFileRow from "./artifact_file_table";
+import BenchPromptRow from "./bench_prompt_table";
+import IntentRow from "./intent_table";
 import ParticipantRow from "./participant_table";
 import PresenceRow from "./presence_table";
-import QuestionRow from "./question_table";
 import RoomRow from "./room_table";
+import ScoreRow from "./score_table";
+import TeamRow from "./team_table";
+import VerdictRow from "./verdict_table";
 import VideoFrameRow from "./video_frame_table";
+import VoteRow from "./vote_table";
 
 /** Type-only namespace exports for generated type groups. */
 
 /** The schema information for all tables in this module. This is defined the same was as the tables would have been defined in the server. */
 const tablesSchema = __schema({
-  answer: __table({
-    name: 'answer',
+  activity: __table({
+    name: 'activity',
     indexes: [
-      { accessor: 'id', name: 'answer_id_idx_btree', algorithm: 'btree', columns: [
+      { accessor: 'id', name: 'activity_id_idx_btree', algorithm: 'btree', columns: [
         'id',
       ] },
-      { accessor: 'questionId', name: 'answer_question_id_idx_btree', algorithm: 'btree', columns: [
-        'questionId',
-      ] },
-      { accessor: 'roomId', name: 'answer_room_id_idx_btree', algorithm: 'btree', columns: [
+      { accessor: 'roomId', name: 'activity_room_id_idx_btree', algorithm: 'btree', columns: [
         'roomId',
       ] },
     ],
     constraints: [
-      { name: 'answer_id_key', constraint: 'unique', columns: ['id'] },
+      { name: 'activity_id_key', constraint: 'unique', columns: ['id'] },
     ],
-  }, AnswerRow),
-  feedback: __table({
-    name: 'feedback',
+  }, ActivityRow),
+  agent: __table({
+    name: 'agent',
     indexes: [
-      { accessor: 'answerId', name: 'feedback_answer_id_idx_btree', algorithm: 'btree', columns: [
-        'answerId',
-      ] },
-      { accessor: 'id', name: 'feedback_id_idx_btree', algorithm: 'btree', columns: [
+      { accessor: 'id', name: 'agent_id_idx_btree', algorithm: 'btree', columns: [
         'id',
       ] },
-      { accessor: 'roomId', name: 'feedback_room_id_idx_btree', algorithm: 'btree', columns: [
+      { accessor: 'roomId', name: 'agent_room_id_idx_btree', algorithm: 'btree', columns: [
         'roomId',
       ] },
     ],
     constraints: [
-      { name: 'feedback_id_key', constraint: 'unique', columns: ['id'] },
+      { name: 'agent_id_key', constraint: 'unique', columns: ['id'] },
     ],
-  }, FeedbackRow),
+  }, AgentRow),
+  artifactFile: __table({
+    name: 'artifact_file',
+    indexes: [
+      { accessor: 'id', name: 'artifact_file_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+      { accessor: 'path', name: 'artifact_file_path_idx_btree', algorithm: 'btree', columns: [
+        'path',
+      ] },
+      { accessor: 'roomId', name: 'artifact_file_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+    ],
+    constraints: [
+      { name: 'artifact_file_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, ArtifactFileRow),
+  benchPrompt: __table({
+    name: 'bench_prompt',
+    indexes: [
+      { accessor: 'roomId', name: 'bench_prompt_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+    ],
+    constraints: [
+      { name: 'bench_prompt_room_id_key', constraint: 'unique', columns: ['roomId'] },
+    ],
+  }, BenchPromptRow),
+  intent: __table({
+    name: 'intent',
+    indexes: [
+      { accessor: 'id', name: 'intent_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+      { accessor: 'roomId', name: 'intent_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+      { accessor: 'status', name: 'intent_status_idx_btree', algorithm: 'btree', columns: [
+        'status',
+      ] },
+      { accessor: 'targetAgentId', name: 'intent_target_agent_id_idx_btree', algorithm: 'btree', columns: [
+        'targetAgentId',
+      ] },
+    ],
+    constraints: [
+      { name: 'intent_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, IntentRow),
   participant: __table({
     name: 'participant',
     indexes: [
@@ -120,20 +180,6 @@ const tablesSchema = __schema({
       { name: 'presence_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
   }, PresenceRow),
-  question: __table({
-    name: 'question',
-    indexes: [
-      { accessor: 'id', name: 'question_id_idx_btree', algorithm: 'btree', columns: [
-        'id',
-      ] },
-      { accessor: 'roomId', name: 'question_room_id_idx_btree', algorithm: 'btree', columns: [
-        'roomId',
-      ] },
-    ],
-    constraints: [
-      { name: 'question_id_key', constraint: 'unique', columns: ['id'] },
-    ],
-  }, QuestionRow),
   room: __table({
     name: 'room',
     indexes: [
@@ -145,6 +191,51 @@ const tablesSchema = __schema({
       { name: 'room_id_key', constraint: 'unique', columns: ['id'] },
     ],
   }, RoomRow),
+  score: __table({
+    name: 'score',
+    indexes: [
+      { accessor: 'roomId', name: 'score_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+      { accessor: 'teamId', name: 'score_team_id_idx_btree', algorithm: 'btree', columns: [
+        'teamId',
+      ] },
+    ],
+    constraints: [
+      { name: 'score_team_id_key', constraint: 'unique', columns: ['teamId'] },
+    ],
+  }, ScoreRow),
+  team: __table({
+    name: 'team',
+    indexes: [
+      { accessor: 'id', name: 'team_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+      { accessor: 'roomId', name: 'team_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+    ],
+    constraints: [
+      { name: 'team_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, TeamRow),
+  verdict: __table({
+    name: 'verdict',
+    indexes: [
+      { accessor: 'id', name: 'verdict_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+      { accessor: 'roomId', name: 'verdict_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+      { accessor: 'teamId', name: 'verdict_team_id_idx_btree', algorithm: 'btree', columns: [
+        'teamId',
+      ] },
+    ],
+    constraints: [
+      { name: 'verdict_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, VerdictRow),
   videoFrame: __table({
     name: 'video_frame',
     indexes: [
@@ -159,21 +250,50 @@ const tablesSchema = __schema({
       { name: 'video_frame_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
   }, VideoFrameRow),
+  vote: __table({
+    name: 'vote',
+    indexes: [
+      { accessor: 'id', name: 'vote_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+      { accessor: 'roomId', name: 'vote_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+      { accessor: 'voter', name: 'vote_voter_idx_btree', algorithm: 'btree', columns: [
+        'voter',
+      ] },
+    ],
+    constraints: [
+      { name: 'vote_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, VoteRow),
 });
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
-  __reducerSchema("advance_turn", AdvanceTurnReducer),
-  __reducerSchema("claim_mentor_seat", ClaimMentorSeatReducer),
+  __reducerSchema("cast_vote", CastVoteReducer),
+  __reducerSchema("claim_file", ClaimFileReducer),
+  __reducerSchema("claim_intent", ClaimIntentReducer),
   __reducerSchema("create_room", CreateRoomReducer),
+  __reducerSchema("delete_file", DeleteFileReducer),
+  __reducerSchema("finish_build", FinishBuildReducer),
+  __reducerSchema("grade_deterministic", GradeDeterministicReducer),
   __reducerSchema("heartbeat", HeartbeatReducer),
+  __reducerSchema("init_race_teams", InitRaceTeamsReducer),
   __reducerSchema("join_room", JoinRoomReducer),
   __reducerSchema("leave_room", LeaveRoomReducer),
-  __reducerSchema("post_question", PostQuestionReducer),
+  __reducerSchema("load_bench_task", LoadBenchTaskReducer),
+  __reducerSchema("mark_intent", MarkIntentReducer),
+  __reducerSchema("post_activity", PostActivityReducer),
   __reducerSchema("push_frame", PushFrameReducer),
-  __reducerSchema("start_session", StartSessionReducer),
-  __reducerSchema("submit_answer", SubmitAnswerReducer),
-  __reducerSchema("submit_feedback", SubmitFeedbackReducer),
+  __reducerSchema("record_verdict", RecordVerdictReducer),
+  __reducerSchema("register_agent", RegisterAgentReducer),
+  __reducerSchema("release_file", ReleaseFileReducer),
+  __reducerSchema("set_agent_status", SetAgentStatusReducer),
+  __reducerSchema("set_file_owner", SetFileOwnerReducer),
+  __reducerSchema("start_build", StartBuildReducer),
+  __reducerSchema("submit_intent", SubmitIntentReducer),
+  __reducerSchema("write_file", WriteFileReducer),
 );
 
 /** The schema information for all procedures in this module. This is defined the same way as the procedures would have been defined in the server. */

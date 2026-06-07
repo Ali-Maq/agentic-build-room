@@ -10,14 +10,7 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
-export default __t.row({
-  id: __t.u64().primaryKey(),
-  topic: __t.string(),
+export default {
+  intentId: __t.u64(),
   status: __t.string(),
-  mode: __t.string(),
-  prompt: __t.string(),
-  startedAt: __t.option(__t.timestamp()).name("started_at"),
-  deadlineAt: __t.option(__t.timestamp()).name("deadline_at"),
-  createdBy: __t.identity().name("created_by"),
-  createdAt: __t.timestamp().name("created_at"),
-});
+};

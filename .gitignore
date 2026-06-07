@@ -1,7 +1,11 @@
 node_modules/
 dist/
 .env
+.env.*
+!.env.example
 ai-runner/.ai_token
+ai-runner/.agent_token*
+ai-runner/.grader_token
 client/e2e/*.png
 *.log
 .DS_Store

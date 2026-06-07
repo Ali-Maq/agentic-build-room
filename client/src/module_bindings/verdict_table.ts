@@ -12,10 +12,19 @@ import {
 
 export default __t.row({
   id: __t.u64().primaryKey(),
-  answerId: __t.u64().name("answer_id"),
   roomId: __t.u64().name("room_id"),
-  score: __t.i32(),
-  notes: __t.string(),
-  source: __t.string(),
+  teamId: __t.u64().name("team_id"),
+  attempt: __t.u32(),
+  method: __t.string(),
+  verified: __t.bool(),
+  passed: __t.bool(),
+  passedCount: __t.u32().name("passed_count"),
+  totalCount: __t.u32().name("total_count"),
+  score: __t.f64(),
+  stdout: __t.string(),
+  stderr: __t.string(),
+  durationMs: __t.u32().name("duration_ms"),
+  judgeNotes: __t.string().name("judge_notes"),
+  submittedBy: __t.identity().name("submitted_by"),
   createdAt: __t.timestamp().name("created_at"),
 });

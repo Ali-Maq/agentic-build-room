@@ -1,13 +1,14 @@
 {
   "name": "panel-ai-runner",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
-    "start": "tsx ai-runner.ts"
+    "agents": "tsx agent-runner.ts",
+    "grader": "tsx grader-runner.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.39.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.1063.0",
     "dotenv": "^16.4.7",
     "spacetimedb": "^2.4.1"
   },

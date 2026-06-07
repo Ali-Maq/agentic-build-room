@@ -10,26 +10,97 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
-export const Answer = __t.object("Answer", {
+export const Activity = __t.object("Activity", {
   id: __t.u64(),
-  questionId: __t.u64(),
   roomId: __t.u64(),
-  identity: __t.identity(),
+  identity: __t.option(__t.identity()),
+  authorName: __t.string(),
+  actorKind: __t.string(),
+  kind: __t.string(),
   text: __t.string(),
-  submittedAt: __t.timestamp(),
-});
-export type Answer = __Infer<typeof Answer>;
-
-export const Feedback = __t.object("Feedback", {
-  id: __t.u64(),
-  answerId: __t.u64(),
-  roomId: __t.u64(),
-  score: __t.i32(),
-  notes: __t.string(),
-  source: __t.string(),
+  path: __t.option(__t.string()),
+  intentId: __t.option(__t.u64()),
+  fromVersion: __t.option(__t.u64()),
+  toVersion: __t.option(__t.u64()),
   createdAt: __t.timestamp(),
 });
-export type Feedback = __Infer<typeof Feedback>;
+export type Activity = __Infer<typeof Activity>;
+
+export const Agent = __t.object("Agent", {
+  id: __t.u64(),
+  roomId: __t.u64(),
+  identity: __t.identity(),
+  pairedHuman: __t.option(__t.identity()),
+  team: __t.string(),
+  role: __t.string(),
+  displayName: __t.string(),
+  status: __t.string(),
+  busyIntentId: __t.option(__t.u64()),
+  updatedAt: __t.timestamp(),
+});
+export type Agent = __Infer<typeof Agent>;
+
+export const ArtifactFile = __t.object("ArtifactFile", {
+  id: __t.u64(),
+  roomId: __t.u64(),
+  path: __t.string(),
+  content: __t.string(),
+  language: __t.string(),
+  version: __t.u64(),
+  ownerRole: __t.string(),
+  lockedBy: __t.option(__t.identity()),
+  lockedAt: __t.option(__t.timestamp()),
+  deleted: __t.bool(),
+  lastEditedBy: __t.identity(),
+  lastEditedByName: __t.string(),
+  lastEditKind: __t.string(),
+  updatedAt: __t.timestamp(),
+});
+export type ArtifactFile = __Infer<typeof ArtifactFile>;
+
+export const BenchPrompt = __t.object("BenchPrompt", {
+  roomId: __t.u64(),
+  datasetId: __t.string(),
+  label: __t.string(),
+  benchmarkType: __t.string(),
+  prompt: __t.string(),
+  choices: __t.string(),
+  entryPoint: __t.string(),
+  gradeUnverified: __t.bool(),
+  loadedAt: __t.timestamp(),
+});
+export type BenchPrompt = __Infer<typeof BenchPrompt>;
+
+export const BenchTask = __t.object("BenchTask", {
+  roomId: __t.u64(),
+  datasetId: __t.string(),
+  config: __t.string(),
+  split: __t.string(),
+  rowIndex: __t.u64(),
+  benchmarkType: __t.string(),
+  prompt: __t.string(),
+  groundTruth: __t.string(),
+  choices: __t.string(),
+  tests: __t.string(),
+  entryPoint: __t.string(),
+  gradeUnverified: __t.bool(),
+  metaJson: __t.string(),
+  loadedAt: __t.timestamp(),
+});
+export type BenchTask = __Infer<typeof BenchTask>;
+
+export const Intent = __t.object("Intent", {
+  id: __t.u64(),
+  roomId: __t.u64(),
+  authorIdentity: __t.identity(),
+  authorName: __t.string(),
+  targetAgentId: __t.u64(),
+  targetPath: __t.option(__t.string()),
+  text: __t.string(),
+  status: __t.string(),
+  createdAt: __t.timestamp(),
+});
+export type Intent = __Infer<typeof Intent>;
 
 export const Participant = __t.object("Participant", {
   id: __t.u64(),
@@ -37,6 +108,8 @@ export const Participant = __t.object("Participant", {
   identity: __t.identity(),
   displayName: __t.string(),
   role: __t.string(),
+  agentModel: __t.option(__t.string()),
+  pairedHuman: __t.option(__t.identity()),
   seat: __t.i32(),
   online: __t.bool(),
   joinedAt: __t.timestamp(),
@@ -56,26 +129,60 @@ export const Presence = __t.object("Presence", {
 });
 export type Presence = __Infer<typeof Presence>;
 
-export const Question = __t.object("Question", {
-  id: __t.u64(),
-  roomId: __t.u64(),
-  text: __t.string(),
-  source: __t.string(),
-  askedAt: __t.timestamp(),
-});
-export type Question = __Infer<typeof Question>;
-
 export const Room = __t.object("Room", {
   id: __t.u64(),
   topic: __t.string(),
   status: __t.string(),
-  currentQuestionId: __t.option(__t.u64()),
-  currentTurn: __t.option(__t.identity()),
-  turnStartedAt: __t.option(__t.timestamp()),
+  mode: __t.string(),
+  prompt: __t.string(),
+  startedAt: __t.option(__t.timestamp()),
+  deadlineAt: __t.option(__t.timestamp()),
   createdBy: __t.identity(),
   createdAt: __t.timestamp(),
 });
 export type Room = __Infer<typeof Room>;
+
+export const Score = __t.object("Score", {
+  teamId: __t.u64(),
+  roomId: __t.u64(),
+  bestScore: __t.f64(),
+  bestPassed: __t.bool(),
+  attempts: __t.u32(),
+  firstPassAttempt: __t.option(__t.u32()),
+  firstPassAtMicros: __t.option(__t.i64()),
+  votes: __t.u32(),
+  updatedAt: __t.timestamp(),
+});
+export type Score = __Infer<typeof Score>;
+
+export const Team = __t.object("Team", {
+  id: __t.u64(),
+  roomId: __t.u64(),
+  kind: __t.string(),
+  label: __t.string(),
+  createdAt: __t.timestamp(),
+});
+export type Team = __Infer<typeof Team>;
+
+export const Verdict = __t.object("Verdict", {
+  id: __t.u64(),
+  roomId: __t.u64(),
+  teamId: __t.u64(),
+  attempt: __t.u32(),
+  method: __t.string(),
+  verified: __t.bool(),
+  passed: __t.bool(),
+  passedCount: __t.u32(),
+  totalCount: __t.u32(),
+  score: __t.f64(),
+  stdout: __t.string(),
+  stderr: __t.string(),
+  durationMs: __t.u32(),
+  judgeNotes: __t.string(),
+  submittedBy: __t.identity(),
+  createdAt: __t.timestamp(),
+});
+export type Verdict = __Infer<typeof Verdict>;
 
 export const VideoFrame = __t.object("VideoFrame", {
   identity: __t.identity(),
@@ -85,4 +192,13 @@ export const VideoFrame = __t.object("VideoFrame", {
   updatedAt: __t.timestamp(),
 });
 export type VideoFrame = __Infer<typeof VideoFrame>;
+
+export const Vote = __t.object("Vote", {
+  id: __t.u64(),
+  roomId: __t.u64(),
+  voter: __t.identity(),
+  teamId: __t.u64(),
+  createdAt: __t.timestamp(),
+});
+export type Vote = __Infer<typeof Vote>;
 

@@ -12,12 +12,13 @@ import {
 
 export default __t.row({
   id: __t.u64().primaryKey(),
-  topic: __t.string(),
+  roomId: __t.u64().name("room_id"),
+  identity: __t.identity(),
+  pairedHuman: __t.option(__t.identity()).name("paired_human"),
+  team: __t.string(),
+  role: __t.string(),
+  displayName: __t.string().name("display_name"),
   status: __t.string(),
-  mode: __t.string(),
-  prompt: __t.string(),
-  startedAt: __t.option(__t.timestamp()).name("started_at"),
-  deadlineAt: __t.option(__t.timestamp()).name("deadline_at"),
-  createdBy: __t.identity().name("created_by"),
-  createdAt: __t.timestamp().name("created_at"),
+  busyIntentId: __t.option(__t.u64()).name("busy_intent_id"),
+  updatedAt: __t.timestamp().name("updated_at"),
 });

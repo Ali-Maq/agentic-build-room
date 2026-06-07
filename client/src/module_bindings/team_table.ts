@@ -12,12 +12,8 @@ import {
 
 export default __t.row({
   id: __t.u64().primaryKey(),
-  topic: __t.string(),
-  status: __t.string(),
-  mode: __t.string(),
-  prompt: __t.string(),
-  startedAt: __t.option(__t.timestamp()).name("started_at"),
-  deadlineAt: __t.option(__t.timestamp()).name("deadline_at"),
-  createdBy: __t.identity().name("created_by"),
+  roomId: __t.u64().name("room_id"),
+  kind: __t.string(),
+  label: __t.string(),
   createdAt: __t.timestamp().name("created_at"),
 });

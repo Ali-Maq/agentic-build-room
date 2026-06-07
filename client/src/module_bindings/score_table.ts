@@ -11,14 +11,13 @@ import {
 } from "spacetimedb";
 
 export default __t.row({
-  id: __t.u64().primaryKey(),
+  teamId: __t.u64().primaryKey().name("team_id"),
   roomId: __t.u64().name("room_id"),
-  identity: __t.identity(),
-  displayName: __t.string().name("display_name"),
-  role: __t.string(),
-  agentModel: __t.option(__t.string()).name("agent_model"),
-  pairedHuman: __t.option(__t.identity()).name("paired_human"),
-  seat: __t.i32(),
-  online: __t.bool(),
-  joinedAt: __t.timestamp().name("joined_at"),
+  bestScore: __t.f64().name("best_score"),
+  bestPassed: __t.bool().name("best_passed"),
+  attempts: __t.u32(),
+  firstPassAttempt: __t.option(__t.u32()).name("first_pass_attempt"),
+  firstPassAtMicros: __t.option(__t.i64()).name("first_pass_at_micros"),
+  votes: __t.u32(),
+  updatedAt: __t.timestamp().name("updated_at"),
 });

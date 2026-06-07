@@ -11,6 +11,9 @@ import {
 } from "spacetimedb";
 
 export default {
-  questionId: __t.u64(),
-  text: __t.string(),
+  roomId: __t.u64(),
+  pairedHuman: __t.option(__t.identity()),
+  team: __t.string(),
+  role: __t.string(),
+  displayName: __t.string(),
 };

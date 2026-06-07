@@ -11,8 +11,6 @@ import {
 } from "spacetimedb";
 
 export default {
-  answerId: __t.u64(),
-  score: __t.i32(),
-  notes: __t.string(),
-  source: __t.string(),
+  roomId: __t.u64(),
+  teamId: __t.u64(),
 };

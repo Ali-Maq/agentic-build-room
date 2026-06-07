@@ -12,6 +12,10 @@ import {
 
 export default {
   roomId: __t.u64(),
-  text: __t.string(),
-  source: __t.string(),
+  path: __t.string(),
+  content: __t.string(),
+  language: __t.string(),
+  baseVersion: __t.u64(),
+  editKind: __t.string(),
+  intent: __t.string(),
 };

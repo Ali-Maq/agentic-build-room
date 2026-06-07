@@ -12,5 +12,6 @@ import {
 
 export default {
   roomId: __t.u64(),
-  displayName: __t.string(),
+  path: __t.string(),
+  ownerRole: __t.string(),
 };
