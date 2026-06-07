@@ -1,108 +1,115 @@
-# Panel — Setup & Run
+# Build Room — Setup & Run
 
-Live group AI interview room on SpacetimeDB. All shared state lives in DB tables;
-every client renders purely from subscriptions. An AI runner drives the panel and
-fills empty seats, so the demo works with a single human in the room.
+A live multiplayer software arena on SpacetimeDB. Humans and AI agents collaborate on one shared web app — or
+solve a coding benchmark — with a live preview and live grading. **All shared state lives in SpacetimeDB tables;
+clients render purely from subscriptions; reducers are the only write path.** The AI lives in a *runner* (a Node
+SpacetimeDB client) because reducers can't make network calls — so API keys never touch the database.
 
 ```
 panel/
   server/      SpacetimeDB module (tables + reducers) — the source of truth
-  client/      Vite + React app — what judges see
-  ai-runner/   Node client that calls the LLM and writes results back to the DB
+  client/      Vite + React app — the hosted UI
+  ai-runner/   Node client: agent-runner (LLM steering) + grader (HumanEval sandbox)
+  video/       Remotion submission video
 ```
 
-## 0. Install the SpacetimeDB CLI (run in YOUR terminal — it needs a TTY)
+**Live app:** https://client-alpha-seven-64.vercel.app · **Module:** `amy-panel` on Maincloud.
+
+---
+
+## 0. Install the SpacetimeDB CLI (run in your terminal — needs a TTY)
 
 ```bash
 curl -sSf https://install.spacetimedb.com | sh
-# add to PATH for this shell (installer also updates your profile):
 export PATH="$HOME/.local/bin:$PATH"
 spacetime --version
-spacetime login            # opens a browser
+spacetime login          # opens a browser; pick the account with your TeV credits
 ```
 
-## 1. Start a local SpacetimeDB (fast dev loop, offline-safe)
+## 1. Local SpacetimeDB (fast dev loop)
 
 ```bash
-# port 3000/3001 are commonly taken (Docker etc.) — this project uses 3456
-spacetime start --listen-addr 127.0.0.1:3456   # leave running in its own terminal
+# 3000/3001 are often taken (Docker etc.) — this project uses 3456
+spacetime start --listen-addr 127.0.0.1:3456    # leave running
 ```
 
-## 2. Publish the module + generate client bindings
+## 2. Publish the module + generate bindings
 
 ```bash
-cd panel/server
-npm install
-spacetime publish panel --server http://127.0.0.1:3456 --yes
-# regenerate the typed bindings the client & ai-runner import:
-spacetime generate --lang typescript \
-  --out-dir ../client/src/module_bindings \
-  --module-path .
+cd panel/server && npm install
+spacetime publish amy-panel --server http://127.0.0.1:3456 --yes
+spacetime generate --lang typescript --out-dir ../client/src/module_bindings --module-path .
 ```
 
-> Tip: `spacetime dev --client-lang typescript --module-bindings-path ../client/src/module_bindings`
-> auto-rebuilds, republishes, and regenerates bindings on every save.
+For local dev set `USE_MAINCLOUD = false` in `client/src/config.ts` (it ships `true` for the hosted build).
 
-## 3. Run the React client
+## 3. Run the client
 
 ```bash
-cd ../client
-npm install
-npm run dev                # http://localhost:5173
+cd ../client && npm install
+npm run dev              # http://localhost:5173
 ```
 
-Open two browser windows → create a room in one, join it in the other. You should
-see participants appear instantly in both. **(Milestone 1.)**
+Pick a **mode** in the lobby — **Free Build**, **Benchmark**, or **Race** — enter a name, create & join. Open a
+second window to prove multiplayer (any number of humans can share a room). You can hand-edit files and **Save**
+with no AI at all; the live preview updates for everyone.
 
 ## 4. Run the AI runner
 
+API keys live only here. **Gemini works out of the box** (`GEMINI_API_KEY`); **Claude via AWS Bedrock** is the
+strongest coder (VPN-only). `ROOM_ID` comes from the room you created:
+
 ```bash
-cd ../ai-runner
-npm install
-cp .env.example .env       # add your ANTHROPIC_API_KEY
-npm start
+cd ../ai-runner && npm install
+spacetime sql amy-panel --server http://127.0.0.1:3456 "SELECT id, topic, mode FROM room"   # find ROOM_ID
 ```
 
-The AI auto-joins any open room, asks the first question when the session starts,
-scores each answer, and rotates the turn. Click **Start session** in the client.
+**Human-steered build** (your IntentBar unlocks; the agent auto-pairs to you):
 
-## Deploying to Maincloud (required for the hosted submission)
+```bash
+PAIR=auto ROOM_ID=<id> AGENT_ROLES=solver npm run agents
+# Claude instead of Gemini:
+AWS_PROFILE=mssm-bedrock AWS_REGION=us-east-1 \
+SOLVER_PROVIDER=bedrock SOLVER_MODEL=us.anthropic.claude-opus-4-8 \
+PAIR=auto ROOM_ID=<id> AGENT_ROLES=solver npm run agents
+```
 
-The hackathon requires a **hosted, working** demo, so the module must run on
-Maincloud (not just local). Redeem credit **LAUNCHPADNYC26** first
-(spacetimedb.com/redeem; ~100k TeV covers hosting — note it does NOT cover LLM calls).
+**Autonomous build** (agents build with no human): add `AUTONOMOUS=true`, drop `PAIR=auto`.
 
-1. **Log in** (opens a browser): `spacetime login`
-2. **Publish** to Maincloud under a **unique name** (`panel` may be taken on shared
-   Maincloud):
-   ```bash
-   cd server
-   spacetime publish panel-<yourhandle> --server maincloud --yes
-   ```
-3. **Regenerate** bindings against the published module (committed to the repo so it
-   builds when cloned):
-   ```bash
-   spacetime generate --lang typescript --out-dir ../client/src/module_bindings --module-path .
-   ```
-4. **Point the client at Maincloud:** in `client/src/config.ts` set
-   `USE_MAINCLOUD = true` and `MODULE_NAME = 'panel-<yourhandle>'`.
-5. **Host the client:** `cd client && npm run build`, deploy `dist/` to Vercel
-   (project root = `client/`, `vercel.json` already provides the SPA rewrite).
-   `USE_MAINCLOUD` is compiled into the bundle, so commit it before the build.
-6. **Host the AI runner always-on** (it's a daemon — Vercel can't run it). Build the
-   Docker image from the `panel/` root and deploy to Railway/Fly/Render:
-   ```bash
-   docker build -f ai-runner/Dockerfile -t panel-ai .   # run from panel/
-   ```
-   Set env on the host: `ANTHROPIC_API_KEY`, `SPACETIMEDB_URI=wss://maincloud.spacetimedb.com`,
-   `MODULE_NAME=panel-<yourhandle>`. (For judging you can instead just run
-   `npm start` in `ai-runner/` on your laptop pointed at Maincloud.)
-7. **Verify** the live URL end-to-end before submitting: two windows, camera,
-   create + join, Start session, confirm the AI asks/scores and video renders.
+**Benchmark (HumanEval, graded by real unit tests)** — two terminals:
 
-## Note on "AI on SpacetimeDB credits"
+```bash
+# 1) grader: loads the task + runs the dataset's unit tests in a sandbox (needs python3)
+BENCH_ROW_INDEX=0 ROOM_ID=<id> npm run grader
+# 2) solver: writes solution.py
+AWS_PROFILE=mssm-bedrock AWS_REGION=us-east-1 SOLVER_PROVIDER=bedrock \
+SOLVER_MODEL=us.anthropic.claude-opus-4-8 ROOM_ID=<id> AUTONOMOUS=true AGENT_ROLES=solver npm run agents
+```
 
-SpacetimeDB credits (TeV energy) pay for **database compute/hosting**, not LLM
-inference — there is no LLM endpoint exposed through them. The AI runner therefore
-calls the Anthropic API (`ANTHROPIC_API_KEY`). If event staff confirm an LLM proxy,
-point `anthropic` at it via `baseURL` in `ai-runner.ts` — a one-line change.
+Then click **Finish** in the room → the VerdictCard flips to **PASS, N/N tests, verified**.
+
+## 5. Deploy to Maincloud (the hosted submission)
+
+```bash
+# module
+cd panel/server && spacetime publish amy-panel --server maincloud --yes
+# client (config.ts already has USE_MAINCLOUD=true, MODULE_NAME='amy-panel')
+cd ../client && npm run build && npx vercel --prod
+```
+
+Run the runner on your laptop pointed at Maincloud (Bedrock/Azure are VPN-only; Gemini works anywhere):
+
+```bash
+SPACETIMEDB_URI=wss://maincloud.spacetimedb.com MODULE_NAME=amy-panel \
+AWS_PROFILE=mssm-bedrock AWS_REGION=us-east-1 SOLVER_PROVIDER=bedrock \
+SOLVER_MODEL=us.anthropic.claude-opus-4-8 PAIR=auto ROOM_ID=<id> AGENT_ROLES=solver npm run agents
+```
+
+## Notes
+
+- **LLM keys ≠ SpacetimeDB credits.** TeV pays for database compute/hosting only; the runner calls Gemini / Claude
+  (Bedrock) directly. Keys live in the runner's env, never in the DB or the browser.
+- **Providers** are pluggable in `ai-runner/llm.ts` (Gemini, Azure GPT-5.4, OpenRouter, Bedrock) via per-role
+  `*_PROVIDER` / `*_MODEL` env vars.
+- **Feature-by-feature test checklist:** see [FEATURES.md](./FEATURES.md). Race mode's UI works but the full
+  two-team race is unproven end-to-end.
